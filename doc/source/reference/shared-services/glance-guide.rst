@@ -17,6 +17,7 @@ backends:
 * ceph
 * vmware
 * swift
+* cinder
 
 File backend
 ~~~~~~~~~~~~
@@ -104,6 +105,29 @@ To enable the swift backend manually:
 .. code-block:: yaml
 
    glance_backend_swift: "yes"
+
+Cinder backend
+~~~~~~~~~~~~~~
+
+To use the ``cinder`` backend in Glance, simply enable it:
+
+.. code-block:: yaml
+
+   glance_backend_cinder: true
+
+Glance will get a backend called ``cinder`` using the ``cinder`` store
+type (driver). It can be customised by setting relevant options in the
+``[cinder]`` config group in ``glance.conf`` overrides. See
+:glance-doc:`Glance's documentation <configuration/configuring.html>` for
+details.
+By default, Glance will use the internal endpoint of Cinder in the same region
+as Glance, with SSL support if available.
+
+This backend has been verified to work with Cinder's iSCSI and FC
+backends.
+
+This backend will be preferred over the ``file`` backend which will be disabled
+by default to allow for high availability of Glance.
 
 Upgrading glance
 ----------------

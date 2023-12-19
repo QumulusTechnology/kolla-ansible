@@ -1,0 +1,31 @@
+---
+features:
+  - |
+    Adds support for configuring Glance's Cinder backend.
+    The ``glance_backend_cinder`` should be set to ``true`` to enable this
+    new backend.
+    Note this will make the Cinder backend properly recognised to allow
+    Glance high availability by disabling the file backend and using
+    Cinder in place of it, just like it happens with any other
+    shared backend.
+fixes:
+  - |
+    Fixes privsep's "broken pipe" error with Cinder Glance backend
+    when no iSCSI Cinder backend was enabled, e.g., when using Cinder's
+    NFS or SMB backend (not enabling any iSCSI backend) and using Cinder
+    as a backend in Glance.
+    `LP#1928669 <https://launchpad.net/bugs/1928669>`__
+  - |
+    Fixes various issues with the Glance's Cinder backend not supporting
+    SSL termination, using the public URL instead of the internal one,
+    unlike most Kolla services, not being set up to use the correct
+    region, being forcefully enabled by default with Cinder without the
+    user knowing, and not being preferred over the file backend causing
+    Glance high availability not to be present despite the possibility.
+upgrade:
+  - |
+    The Glance's Cinder backend is no longer "enabled" by default.
+    It was not really "enabled" well before the introduction of proper
+    logic with ``glance_backend_cinder``.
+    Users dependent on the Glance's Cinder backend are advised to use
+    the newly introduced variable to set it up.

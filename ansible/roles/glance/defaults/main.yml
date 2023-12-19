@@ -7,7 +7,7 @@ glance_services:
     enabled: true
     image: "{{ glance_api_image_full }}"
     environment: "{{ glance_api_container_proxy }}"
-    privileged: "{{ enable_cinder | bool and (enable_cinder_backend_iscsi | bool or cinder_backend_ceph | bool) }}"
+    privileged: "{{ glance_api_run_privileged | bool }}"
     volumes: "{{ glance_api_default_volumes + glance_api_extra_volumes }}"
     dimensions: "{{ glance_api_dimensions }}"
     healthcheck: "{{ glance_api_healthcheck }}"
@@ -198,8 +198,8 @@ glance_api_default_volumes:
   - "{{ kolla_dev_repos_directory ~ '/glance/glance:/var/lib/kolla/venv/lib/python' ~ distro_python_version ~ '/site-packages/glance' if glance_dev_mode | bool else '' }}"
   - "kolla_logs:/var/log/kolla/"
   # NOTE(yoctozepto): below to support Cinder iSCSI backends
-  - "{% if enable_cinder | bool and enable_cinder_backend_iscsi | bool %}iscsi_info:/etc/iscsi{% endif %}"
-  - "{% if enable_cinder | bool and enable_cinder_backend_iscsi | bool %}/dev:/dev{% endif %}"
+  - "{% if glance_api_mount_iscsi_info | bool %}iscsi_info:/etc/iscsi{% endif %}"
+  - "{% if glance_api_mount_dev | bool %}/dev:/dev{% endif %}"
 glance_tls_proxy_default_volumes:
   - "{{ node_config_directory }}/glance-tls-proxy/:{{ container_config_directory }}/:ro"
   - "/etc/localtime:/etc/localtime:ro"
@@ -230,7 +230,7 @@ glance_backends:
     enabled: "{{ glance_backend_vmware | bool }}"
   - name: cinder
     type: cinder
-    enabled: "{{ enable_cinder | bool }}"
+    enabled: "{{ glance_backend_cinder | bool }}"
   - name: swift
     type: swift
     enabled: "{{ glance_backend_swift | bool }}"
@@ -243,6 +243,10 @@ glance_ceph_backends:
 
 glance_store_backends: "{{ glance_backends | selectattr('enabled', 'equalto', true) | list + glance_ceph_backends | selectattr('enabled', 'equalto', true) | list }}"
 glance_default_backend: "{% if glance_backend_vmware | bool %}vmware{% elif glance_backend_ceph | bool %}{{ glance_ceph_backends[0].name }}{% elif glance_backend_swift | bool %}swift{% elif glance_backend_s3 | bool %}s3{% else %}file{% endif %}"
+
+glance_api_run_privileged: "{{ glance_backend_cinder | bool }}"
+glance_api_mount_dev: "{{ glance_backend_cinder | bool }}"
+glance_api_mount_iscsi_info: "{{ glance_backend_cinder | bool and enable_cinder_backend_iscsi | bool }}"
 
 ####################
 # OpenStack

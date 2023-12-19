@@ -148,7 +148,7 @@
     voting: false
     files:
       - ^requirements-core.yml
-      - ^ansible/roles/(zun|kuryr|etcd|cinder|iscsi)/
+      - ^ansible/roles/(zun|kuryr|etcd|cinder|iscsi|glance)/
       - ^tests/setup_disks.sh
       - ^tests/test-core-openstack.sh
       - ^tests/test-zun.sh
