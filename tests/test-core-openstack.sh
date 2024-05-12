@@ -8,6 +8,7 @@ set -o pipefail
 export PYTHONUNBUFFERED=1
 
 function test_smoke {
+    openstack --debug endpoint list
     openstack --debug compute service list
     openstack --debug network agent list
     openstack --debug orchestration service list
@@ -175,6 +176,40 @@ function create_instance {
     fi
 }
 
+function resize_instance {
+    local name=$1
+
+    # TODO(priteau): Remove once previous_release includes m2.tiny in
+    # init-runonce
+    if ! openstack flavor list -f value | grep m2.tiny; then
+        openstack flavor create --id 6 --ram 512 --disk 1 --vcpus 2 m2.tiny
+    fi
+
+    openstack server resize --flavor m2.tiny --wait ${name}
+    # If the status is not VERIFY_RESIZE, print info and exit 1
+    if [[ $(openstack server show ${name} -f value -c status) != "VERIFY_RESIZE" ]]; then
+        echo "FAILED: Instance is not resized"
+        openstack --debug server show ${name}
+        return 1
+    fi
+
+    openstack server resize confirm ${name}
+
+    # Confirming the resize operation is not instantaneous. Wait for change to
+    # be reflected in server status.
+    attempt=1
+    while [[ $(openstack server show ${name} -f value -c status) != "ACTIVE" ]]; do
+        echo "Instance is not active yet"
+        attempt=$((attempt+1))
+        if [[ $attempt -eq 5 ]]; then
+            echo "FAILED: Instance failed to become active after resize confirm"
+            openstack --debug server show ${name}
+            return 1
+        fi
+        sleep 1
+    done
+}
+
 function delete_instance {
     local name=$1
     openstack server delete --wait ${name}
@@ -211,7 +246,7 @@ function unset_cirros_image_q35_machine_type {
 
 function test_neutron_modules {
     # Exit the function if scenario is "ovn" or if there's an upgrade
-    # as inly concerns ml2/ovs
+    # as it only concerns ml2/ovs
     if [[ $SCENARIO == "ovn" ]] || [[ $HAS_UPGRADE == "yes" ]]; then
         return
     fi
@@ -344,6 +379,10 @@ function test_instance_boot {
         echo "SUCCESS: Floating ip deallocation"
     fi
 
+    echo "TESTING: Server resize"
+    resize_instance kolla_boot_test
+    echo "SUCCESS: Server resize"
+
     echo "TESTING: Server deletion"
     delete_instance kolla_boot_test
     echo "SUCCESS: Server deletion"
@@ -369,12 +408,81 @@ function test_instance_boot {
     fi
 }
 
+function test_internal_dns_integration {
+
+    # As per test globals - neutron integration is turned off
+    if openstack extension list --network -f value -c Alias | grep -q dns-integration; then
+        DNS_NAME="my-port"
+        PORT_NAME="${DNS_NAME}"
+        DNS_DOMAIN=$(awk -F ':' '/neutron_dns_domain:/ { print $2 }' /etc/kolla/globals.yml \
+                    | sed -e 's/"//g' -e "s/'//g" -e "s/\ *//g")
+
+        openstack network create dns-test-network
+        openstack subnet create --network dns-test-network --subnet-range 192.168.88.0/24 dns-test-subnet
+        openstack port create --network dns-test-network --dns-name ${DNS_NAME} ${PORT_NAME}
+
+        DNS_ASSIGNMENT=$(openstack port show ${DNS_NAME} -f json -c dns_assignment)
+        FQDN=$(echo ${DNS_ASSIGNMENT} | python -c 'import json,sys;obj=json.load(sys.stdin);print(obj["dns_assignment"][0]["fqdn"]);')
+        HOSTNAME=$(echo ${DNS_ASSIGNMENT} | python -c 'import json,sys;obj=json.load(sys.stdin);print(obj["dns_assignment"][0]["hostname"]);')
+
+        if [ "${DNS_NAME}.${DNS_DOMAIN}" == "${FQDN}" ]; then
+            echo "[i] Test neutron internal DNS integration FQDN check port - PASS"
+        else
+            echo "[e] Test neutron internal DNS integration FQDN check port - FAIL"
+            exit 1
+        fi
+
+        if [ "${DNS_NAME}" == "${HOSTNAME}" ]; then
+            echo "[i] Test neutron internal DNS integration HOSTNAME check port - PASS"
+        else
+            echo "[e] Test neutron internal DNS integration HOSTNAME check port - FAIL"
+            exit 1
+        fi
+
+        openstack port delete ${PORT_NAME}
+
+        SERVER_NAME="my_vm"
+        SERVER_NAME_SANITIZED=$(echo ${SERVER_NAME} | sed -e 's/_/-/g')
+
+        openstack server create --image cirros --flavor m1.tiny --network dns-test-network ${SERVER_NAME}
+
+        SERVER_ID=$(openstack server show ${SERVER_NAME} -f value -c id)
+        PORT_ID=$(openstack port list --device-id ${SERVER_ID} -f value -c ID)
+
+        DNS_ASSIGNMENT=$(openstack port show ${PORT_ID} -f json -c dns_assignment)
+        FQDN=$(echo ${DNS_ASSIGNMENT} | python -c 'import json,sys;obj=json.load(sys.stdin);print(obj["dns_assignment"][0]["fqdn"]);')
+        HOSTNAME=$(echo ${DNS_ASSIGNMENT} | python -c 'import json,sys;obj=json.load(sys.stdin);print(obj["dns_assignment"][0]["hostname"]);')
+
+        if [ "${SERVER_NAME_SANITIZED}.${DNS_DOMAIN}" == "${FQDN}" ]; then
+            echo "[i] Test neutron internal DNS integration FQDN check instance create - PASS"
+        else
+            echo "[e] Test neutron internal DNS integration FQDN check instance create - FAIL"
+            exit 1
+        fi
+
+        if [ "${SERVER_NAME_SANITIZED}" == "${HOSTNAME}" ]; then
+            echo "[i] Test neutron internal DNS integration HOSTNAME check instance create - PASS"
+        else
+            echo "[e] Test neutron internal DNS integration HOSTNAME check instance create - FAIL"
+            exit 1
+        fi
+
+        openstack server delete --wait ${SERVER_NAME}
+        openstack subnet delete dns-test-subnet
+        openstack network delete dns-test-network
+
+    else
+        echo "[i] DNS Integration is not enabled."
+    fi
+}
+
 function test_openstack_logged {
     . /etc/kolla/admin-openrc.sh
     . ~/openstackclient-venv/bin/activate
     test_smoke
     test_neutron_modules
     test_instance_boot
+    test_internal_dns_integration
 
     # Check for x86_64 architecture to run q35 tests
     if [[ $(uname -m) == "x86_64" ]]; then

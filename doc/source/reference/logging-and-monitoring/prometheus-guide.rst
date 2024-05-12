@@ -38,10 +38,14 @@ Basic Auth
 ~~~~~~~~~~
 
 Prometheus is protected with basic HTTP authentication. Kolla-ansible will
-create the following users: ``admin`` and ``grafana`` (if grafana is
-enabled). The grafana username can be overidden using the variable
-``prometheus_grafana_user``. The passwords are defined by the
-``prometheus_password`` and ``prometheus_grafana_password`` variables in
+create the following users: ``admin``, ``grafana`` (if grafana is
+enabled) and ``skyline`` (if skyline is enabled). The grafana username can
+be overridden using the variable
+``prometheus_grafana_user``, the skyline username can
+be overridden using the variable ``prometheus_skyline_user``.
+The passwords are defined by the
+``prometheus_password``, ``prometheus_grafana_password`` and
+``prometheus_skyline_password`` variables in
 ``passwords.yml``. The list of basic auth users can be extended using the
 ``prometheus_basic_auth_users_extra`` variable:
 
@@ -52,7 +56,7 @@ enabled). The grafana username can be overidden using the variable
         password: hello
         enabled: true
 
-or completely overriden with the ``prometheus_basic_auth_users`` variable.
+or completely overridden with the ``prometheus_basic_auth_users`` variable.
 
 Extending the default command line options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -120,7 +124,7 @@ Extra files
 
 Sometimes it is necessary to reference additional files from within
 ``prometheus.yml``, for example, when defining file service discovery
-configuration. To enable you to do this, kolla-ansible will resursively
+configuration. To enable you to do this, kolla-ansible will recursively
 discover any files in ``{{ node_custom_config }}/prometheus/extras`` and
 template them. The templated output is then copied to
 ``/etc/prometheus/extras`` within the container on startup. For example to

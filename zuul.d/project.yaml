@@ -25,6 +25,8 @@
         - kolla-ansible-ubuntu-multinode-ipv6
         - kolla-ansible-rocky9-bifrost
         - kolla-ansible-ubuntu-bifrost
+        - kolla-ansible-rocky9-zun
+        - kolla-ansible-ubuntu-zun
         - kolla-ansible-rocky9-swift
         - kolla-ansible-ubuntu-swift
         - kolla-ansible-rocky9-scenario-nfv
@@ -38,8 +40,11 @@
         - kolla-ansible-debian-ironic
         - kolla-ansible-ubuntu-ironic
         - kolla-ansible-rocky9-upgrade
+        - kolla-ansible-rocky9-slurp-upgrade
         - kolla-ansible-debian-upgrade
+        - kolla-ansible-debian-slurp-upgrade
         - kolla-ansible-ubuntu-upgrade
+        - kolla-ansible-ubuntu-slurp-upgrade
         - kolla-ansible-ubuntu-cells
         - kolla-ansible-rocky9-cells
         - kolla-ansible-rocky9-mariadb
@@ -60,12 +65,18 @@
         - kolla-ansible-rocky9-cephadm
         - kolla-ansible-ubuntu-cephadm
         - kolla-ansible-rocky9-upgrade-cephadm
+        - kolla-ansible-rocky9-slurp-upgrade-cephadm
         - kolla-ansible-ubuntu-upgrade-cephadm
+        - kolla-ansible-ubuntu-slurp-upgrade-cephadm
         - kolla-ansible-rocky9-hashi-vault
+        - kolla-ansible-rocky9-haproxy-fqdn
+        - kolla-ansible-ubuntu-haproxy-fqdn
         - kolla-ansible-ubuntu-lets-encrypt
         - kolla-ansible-rocky9-lets-encrypt
         - kolla-ansible-ubuntu-skyline
         - kolla-ansible-rocky9-skyline
+        - kolla-ansible-ubuntu-skyline-sso
+        - kolla-ansible-rocky9-skyline-sso
     check-arm64:
       jobs:
         - kolla-ansible-debian-aarch64
@@ -77,9 +88,13 @@
         - kolla-ansible-debian-upgrade
         - kolla-ansible-debian-podman
         - kolla-ansible-rocky9
+        - kolla-ansible-rocky9-prometheus-opensearch
+        - kolla-ansible-rocky9-prometheus-opensearch-upgrade
         - kolla-ansible-rocky9-upgrade
         - kolla-ansible-rocky9-podman
         - kolla-ansible-ubuntu
+        - kolla-ansible-ubuntu-prometheus-opensearch
+        - kolla-ansible-ubuntu-prometheus-opensearch-upgrade
         - kolla-ansible-ubuntu-upgrade
         - kolla-ansible-ubuntu-podman
     experimental:

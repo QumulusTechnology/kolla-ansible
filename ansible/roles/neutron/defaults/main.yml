@@ -656,6 +656,8 @@ neutron_metadata_workers: "{{ openstack_service_workers }}"
 # Subprojects
 ####################
 neutron_subprojects:
+  - name: "neutron-fwaas"
+    enabled: "{{ enable_neutron_fwaas | bool }}"
   - name: "networking-sfc"
     enabled: "{{ enable_neutron_sfc | bool }}"
   - name: "neutron-dynamic-routing"
@@ -664,6 +666,8 @@ neutron_subprojects:
     enabled: "{{ enable_neutron_vpnaas | bool }}"
   - name: "vmware-nsx"
     enabled: "{{ neutron_plugin_agent in ['vmware_dvs', 'vmware_nsxv', 'vmware_nsxv3', 'vmware_nsxp'] }}"
+  - name: "tap-as-a-service"
+    enabled: "{{ enable_neutron_taas | bool }}"
 
 ####################
 # Mechanism drivers
@@ -695,7 +699,7 @@ extension_drivers:
   - name: "port_security"
     enabled: true
   - name: "subnet_dns_publish_fixed_ip"
-    enabled: "{{ enable_designate | bool }}"
+    enabled: "{{ neutron_dns_integration | bool }}"
   - name: "sfc"
     enabled: "{{ enable_neutron_sfc | bool }}"
 
@@ -723,6 +727,8 @@ neutron_modules_extra: []
 # Service Plugins
 ####################
 service_plugins:
+  - name: "firewall_v2"
+    enabled: "{{ enable_neutron_fwaas | bool }}"
   - name: "flow_classifier"
     enabled: "{{ enable_neutron_sfc | bool }}"
   - name: "metering"
@@ -747,6 +753,8 @@ service_plugins:
     enabled: "{{ neutron_plugin_agent == 'ovn' }}"
   - name: "log"
     enabled: "{{ enable_neutron_packet_logging | bool }}"
+  - name: "taas"
+    enabled: "{{ enable_neutron_taas | bool }}"
 
 neutron_service_plugins: "{{ service_plugins | selectattr('enabled', 'equalto', true) | list }}"
 
@@ -758,8 +766,6 @@ neutron_notification_topics:
     enabled: "{{ enable_ceilometer | bool or enable_neutron_infoblox_ipam_agent | bool }}"
   - name: "{{ designate_notifications_topic_name }}"
     enabled: "{{ designate_enable_notifications_sink | bool }}"
-  - name: vitrage_notifications
-    enabled: "{{ enable_vitrage | bool }}"
 
 neutron_enabled_notification_topics: "{{ neutron_notification_topics | selectattr('enabled', 'equalto', true) | list }}"
 
@@ -775,10 +781,14 @@ agent_extensions:
     enabled: "{{ enable_neutron_sriov | bool }}"
   - name: "log"
     enabled: "{{ enable_neutron_packet_logging | bool }}"
+  - name: "taas"
+    enabled: "{{ enable_neutron_taas | bool }}"
 
 neutron_agent_extensions: "{{ agent_extensions | selectattr('enabled', 'equalto', true) | list }}"
 
 l3_agent_extensions:
+  - name: "fwaas_v2"
+    enabled: "{{ enable_neutron_fwaas | bool }}"
   - name: "vpnaas"
     enabled: "{{ enable_neutron_vpnaas | bool }}"
   - name: "port_forwarding"
@@ -918,3 +928,10 @@ neutron_tls_proxy_server_timeout: "1m"
 neutron_tls_proxy_check_timeout: "10s"
 # Check http://www.haproxy.org/download/1.5/doc/configuration.txt for available options
 neutron_tls_proxy_defaults_balance: "roundrobin"
+
+####################
+# DNS
+####################
+neutron_dns_integration: "{{ enable_designate | bool }}"
+# When overridden by the user, this value must end with a dot.
+neutron_dns_domain: "openstacklocal"

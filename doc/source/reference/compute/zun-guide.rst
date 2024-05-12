@@ -8,18 +8,6 @@ workload on OpenStack."
 For more details about Zun, see `OpenStack Zun Documentation
 <https://docs.openstack.org/zun/latest/>`__.
 
-.. warning::
-
-   Zun is currently NOT SUPPORTED for this version of Kolla-Ansible.
-
-   Since work on repairing compatibility is expected to start development
-   during the 2024.1 release cycle, backports will be considered to the
-   stable series to bridge the migration path.
-
-   While the service containers and ansible roles still remain, a working
-   installation is currently not possible in CI, and therefore is not
-   supported.
-
 Preparation and Deployment
 --------------------------
 
@@ -34,20 +22,6 @@ following variables:
    enable_etcd: "yes"
    docker_configure_for_zun: "yes"
    containerd_configure_for_zun: "yes"
-
-Currently Kuryr does not support Docker 23 and later due to
-dropped --cluster-store option (bug
-`bug <https://bugs.launchpad.net/zun/+bug/2007142>`__).You need
-to cap docker by setting the following variables in globals.yml.
-
-.. code-block:: yaml
-
-   docker_apt_package_pin: "5:20.*"
-   docker_yum_package_pin: "20.*"
-
-Debian Bookworm is not recommended as a host OS for Zun.
-It does not support a version of Docker with the deprecated option.
-Compatibility with Zun is not tested in CI.
 
 Docker reconfiguration requires rebootstrapping before deploy.
 Make sure you understand the consequences of restarting Docker.

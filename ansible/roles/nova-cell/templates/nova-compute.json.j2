@@ -55,6 +55,12 @@
             "owner": "nova",
             "perm": "0600",
             "optional": true
+        },
+        {
+            "source": "{{ container_config_directory }}/hostnqn",
+            "dest": "/etc/nvme/hostnqn",
+            "owner": "root",
+            "perm": "0644"
         }{% if nova_compute_virt_type in ['kvm', 'qemu'] and libvirt_enable_sasl | bool %},
         {
             "source": "{{ container_config_directory }}/auth.conf",
@@ -65,6 +71,12 @@
         {
             "source": "{{ container_config_directory }}/provider_config.yaml",
             "dest": "/etc/nova/provider_config/provider_config.yaml",
+            "owner": "nova",
+            "perm": "0600"
+        }{% endif %}{% if vendordata_file_path is defined %},
+        {
+            "source": "{{ container_config_directory }}/vendordata.json",
+            "dest": "/etc/nova/vendordata.json",
             "owner": "nova",
             "perm": "0600"
         }{% endif %}

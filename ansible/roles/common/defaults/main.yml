@@ -30,9 +30,9 @@ common_services:
     volumes: "{{ cron_default_volumes + cron_extra_volumes }}"
     dimensions: "{{ cron_dimensions }}"
 
-#######################
-# TLS and authenication
-#######################
+########################
+# TLS and authentication
+########################
 
 fluentd_elasticsearch_path: ""
 fluentd_elasticsearch_scheme: "{{ internal_protocol }}"
@@ -120,6 +120,7 @@ fluentd_default_volumes:
   - "{{ '/etc/timezone:/etc/timezone:ro' if ansible_facts.os_family == 'Debian' else '' }}"
   - "kolla_logs:/var/log/kolla/"
   - "fluentd_data:/var/lib/fluentd/data/"
+  - "/var/log/journal:/var/log/journal:ro"
 kolla_toolbox_extra_volumes: "{{ default_extra_volumes }}"
 cron_extra_volumes: "{{ default_extra_volumes }}"
 fluentd_extra_volumes: "{{ default_extra_volumes }}"
@@ -151,8 +152,6 @@ fluentd_input_openstack_services:
     enabled: "{{ enable_cyborg | bool }}"
   - name: designate
     enabled: "{{ enable_designate | bool }}"
-  - name: freezer
-    enabled: "{{ enable_freezer | bool }}"
   - name: glance
     enabled: "{{ enable_glance | bool }}"
   - name: gnocchi
@@ -177,20 +176,12 @@ fluentd_input_openstack_services:
     enabled: "{{ enable_masakari | bool }}"
   - name: mistral
     enabled: "{{ enable_mistral | bool }}"
-  - name: murano
-    enabled: "{{ enable_murano | bool }}"
   - name: neutron
     enabled: "{{ enable_neutron | bool }}"
   - name: nova
     enabled: "{{ enable_nova | bool }}"
   - name: octavia
     enabled: "{{ enable_octavia | bool }}"
-  - name: sahara
-    enabled: "{{ enable_sahara | bool }}"
-  - name: senlin
-    enabled: "{{ enable_senlin | bool }}"
-  - name: solum
-    enabled: "{{ enable_solum | bool }}"
   - name: tacker
     enabled: "{{ enable_tacker | bool }}"
   - name: trove

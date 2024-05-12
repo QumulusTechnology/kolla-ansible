@@ -37,13 +37,6 @@ prometheus_services:
     image: "{{ prometheus_mysqld_exporter_image_full }}"
     volumes: "{{ prometheus_mysqld_exporter_default_volumes + prometheus_mysqld_exporter_extra_volumes }}"
     dimensions: "{{ prometheus_mysqld_exporter_dimensions }}"
-  prometheus-haproxy-exporter:
-    container_name: prometheus_haproxy_exporter
-    group: prometheus-haproxy-exporter
-    enabled: "{{ enable_prometheus_haproxy_exporter | bool }}"
-    image: "{{ prometheus_haproxy_exporter_image_full }}"
-    volumes: "{{ prometheus_haproxy_exporter_default_volumes + prometheus_haproxy_exporter_extra_volumes }}"
-    dimensions: "{{ prometheus_haproxy_exporter_dimensions }}"
   prometheus-memcached-exporter:
     container_name: prometheus_memcached_exporter
     group: prometheus-memcached-exporter
@@ -161,6 +154,9 @@ prometheus_basic_auth_users_default:
   - username: "{{ prometheus_grafana_user }}"
     password: "{{ prometheus_grafana_password }}"
     enabled: "{{ enable_grafana }}"
+  - username: "{{ prometheus_skyline_user }}"
+    password: "{{ prometheus_skyline_password }}"
+    enabled: "{{ enable_skyline }}"
 
 prometheus_basic_auth_users_extra: []
 
@@ -196,10 +192,6 @@ prometheus_tag: "{{ openstack_tag }}"
 prometheus_server_image: "{{ docker_registry ~ '/' if docker_registry else '' }}{{ docker_namespace }}/prometheus-v2-server"
 prometheus_server_tag: "{{ prometheus_tag }}"
 prometheus_server_image_full: "{{ prometheus_server_image }}:{{ prometheus_server_tag }}"
-
-prometheus_haproxy_exporter_image: "{{ docker_registry ~ '/' if docker_registry else '' }}{{ docker_namespace }}/prometheus-haproxy-exporter"
-prometheus_haproxy_exporter_tag: "{{ prometheus_tag }}"
-prometheus_haproxy_exporter_image_full: "{{ prometheus_haproxy_exporter_image }}:{{ prometheus_haproxy_exporter_tag }}"
 
 prometheus_mysqld_exporter_image: "{{ docker_registry ~ '/' if docker_registry else '' }}{{ docker_namespace }}/prometheus-mysqld-exporter"
 prometheus_mysqld_exporter_tag: "{{ prometheus_tag }}"
@@ -243,7 +235,6 @@ prometheus_msteams_tag: "{{ prometheus_tag }}"
 prometheus_msteams_image_full: "{{ prometheus_msteams_image }}:{{ prometheus_msteams_tag }}"
 
 prometheus_server_dimensions: "{{ default_container_dimensions }}"
-prometheus_haproxy_exporter_dimensions: "{{ default_container_dimensions }}"
 prometheus_mysqld_exporter_dimensions: "{{ default_container_dimensions }}"
 prometheus_node_exporter_dimensions: "{{ default_container_dimensions }}"
 prometheus_memcached_exporter_dimensions: "{{ default_container_dimensions }}"
@@ -261,12 +252,6 @@ prometheus_server_default_volumes:
   - "{{ '/etc/timezone:/etc/timezone:ro' if ansible_facts.os_family == 'Debian' else '' }}"
   - "prometheus_v2:/var/lib/prometheus"
   - "kolla_logs:/var/log/kolla/"
-prometheus_haproxy_exporter_default_volumes:
-  - "{{ node_config_directory }}/prometheus-haproxy-exporter/:{{ container_config_directory }}/:ro"
-  - "/etc/localtime:/etc/localtime:ro"
-  - "{{ '/etc/timezone:/etc/timezone:ro' if ansible_facts.os_family == 'Debian' else '' }}"
-  - "kolla_logs:/var/log/kolla/"
-  - "haproxy_socket:/var/lib/kolla/haproxy"
 prometheus_mysqld_exporter_default_volumes:
   - "{{ node_config_directory }}/prometheus-mysqld-exporter/:{{ container_config_directory }}/:ro"
   - "/etc/localtime:/etc/localtime:ro"
@@ -327,7 +312,6 @@ prometheus_msteams_default_volumes:
 
 prometheus_extra_volumes: "{{ default_extra_volumes }}"
 prometheus_server_extra_volumes: "{{ prometheus_extra_volumes }}"
-prometheus_haproxy_exporter_extra_volumes: "{{ prometheus_extra_volumes }}"
 prometheus_mysqld_exporter_extra_volumes: "{{ prometheus_extra_volumes }}"
 prometheus_node_exporter_extra_volumes: "{{ prometheus_extra_volumes }}"
 prometheus_memcached_exporter_extra_volumes: "{{ prometheus_extra_volumes }}"
@@ -354,9 +338,8 @@ prometheus_server_command: >-
   --storage.tsdb.path /var/lib/prometheus{% if prometheus_cmdline_extras %} {{ prometheus_cmdline_extras }}{% endif %}
 
 prometheus_blackbox_exporter_cmdline_extras: ""
-prometheus_cadvisor_cmdline_extras: "--docker_only --store_container_labels=false --disable_metrics=percpu,referenced_memory,cpu_topology,resctrl,udp,advtcp,sched,hugetlb,memory_numa,tcp,process"
+prometheus_cadvisor_cmdline_extras: "--docker_only --store_container_labels=false --disable_metrics=percpu,referenced_memory,cpu_topology,resctrl,udp,advtcp,sched,hugetlb,memory_numa,tcp,process --housekeeping_interval={{ prometheus_scrape_interval }}"
 prometheus_elasticsearch_exporter_cmdline_extras: ""
-prometheus_haproxy_exporter_cmdline_extras: ""
 prometheus_memcached_exporter_cmdline_extras: ""
 prometheus_mysqld_exporter_cmdline_extras: ""
 prometheus_node_exporter_cmdline_extras: ""
