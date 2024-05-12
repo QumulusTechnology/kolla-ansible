@@ -22,8 +22,6 @@ enabled_backends = {% for key in glance_store_backends %}{{ key.name }}:{{ key.t
 property_protection_file = /etc/glance/property-protections-rules.conf
 {% endif %}
 
-cinder_catalog_info = volume:cinder:internalURL
-
 transport_url = {{ rpc_transport_url }}
 
 {% if enable_glance_image_cache | bool %}
@@ -101,6 +99,13 @@ vmware_server_username = {{ vmware_vcenter_host_username }}
 vmware_server_password = {{ vmware_vcenter_host_password }}
 vmware_datastores = {{ vmware_vcenter_name }}:{{ vmware_datastore_name }}
 vmware_insecure = True
+{% endif %}
+
+{% if glance_backend_cinder | bool %}
+[cinder]
+cinder_catalog_info = volumev3::internalURL
+cinder_os_region_name = {{ openstack_region_name }}
+cinder_ca_certificates_file = {{ openstack_cacert }}
 {% endif %}
 
 [os_glance_tasks_store]

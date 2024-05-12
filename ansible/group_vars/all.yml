@@ -994,12 +994,13 @@ openstack_auth:
 #######################
 # Glance options
 #######################
-glance_backend_file: "{{ not (glance_backend_ceph | bool or glance_backend_s3 | bool or glance_backend_swift | bool or glance_backend_vmware | bool) }}"
+glance_backend_file: "{{ not (glance_backend_ceph | bool or glance_backend_s3 | bool or glance_backend_swift | bool or glance_backend_vmware | bool or glance_backend_cinder | bool) }}"
 glance_backend_ceph: "no"
 glance_backend_vmware: "no"
 glance_backend_s3: "no"
 enable_glance_image_cache: "no"
 glance_backend_swift: "{{ enable_swift | bool }}"
+glance_backend_cinder: false
 glance_file_datadir_volume: "glance"
 glance_enable_rolling_upgrade: "no"
 glance_enable_property_protection: "no"
