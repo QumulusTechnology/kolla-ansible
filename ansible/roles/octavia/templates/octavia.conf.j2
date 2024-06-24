@@ -131,6 +131,9 @@ ssl_ca_file = {{ om_rabbitmq_cacert }}
 {% if om_enable_rabbitmq_high_availability | bool %}
 amqp_durable_queues = true
 {% endif %}
+{% if om_enable_rabbitmq_quorum_queues | bool %}
+rabbit_quorum_queue = true
+{% endif %}
 
 {% if octavia_policy_file is defined %}
 [oslo_policy]
@@ -151,7 +154,7 @@ ca_certificates_file = {{ openstack_cacert }}
 region_name = {{ openstack_region_name }}
 endpoint_type = internal
 ca_certificates_file = {{ openstack_cacert }}
-{% if enable_octavia_jobboard %}
+{% if enable_octavia_jobboard | bool %}
 
 [task_flow]
 persistence_connection = mysql+pymysql://{{ octavia_persistence_database_user }}:{{ octavia_persistence_database_password }}@{{ octavia_persistence_database_address }}/{{ octavia_persistence_database_name }}

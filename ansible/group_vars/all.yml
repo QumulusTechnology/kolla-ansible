@@ -718,7 +718,7 @@ external_api_firewalld_zone: "public"
 ####################
 # OpenStack options
 ####################
-openstack_release: "master"
+openstack_release: "2023.2"
 # Docker image tag used by default.
 openstack_tag: "{{ openstack_release }}-{{ kolla_base_distro }}-{{ kolla_base_distro_version }}{{ openstack_tag_suffix }}"
 openstack_tag_suffix: ""
@@ -1018,6 +1018,10 @@ keystone_public_url: "{{ keystone_external_fqdn | kolla_url(public_protocol, key
 
 keystone_admin_user: "admin"
 keystone_admin_project: "admin"
+
+# Whether or not to apply changes to service user passwords when services are
+# reconfigured
+update_keystone_service_user_passwords: true
 
 default_project_domain_name: "Default"
 default_project_domain_id: "default"

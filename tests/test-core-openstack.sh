@@ -8,6 +8,7 @@ set -o pipefail
 export PYTHONUNBUFFERED=1
 
 function test_smoke {
+    openstack --debug endpoint list
     openstack --debug compute service list
     openstack --debug network agent list
     openstack --debug orchestration service list
@@ -173,6 +174,40 @@ function create_instance {
         openstack --debug server show ${name}
         return 1
     fi
+}
+
+function resize_instance {
+    local name=$1
+
+    # TODO(priteau): Remove once previous_release includes m2.tiny in
+    # init-runonce
+    if ! openstack flavor list -f value | grep m2.tiny; then
+        openstack flavor create --id 6 --ram 512 --disk 1 --vcpus 2 m2.tiny
+    fi
+
+    openstack server resize --flavor m2.tiny --wait ${name}
+    # If the status is not VERIFY_RESIZE, print info and exit 1
+    if [[ $(openstack server show ${name} -f value -c status) != "VERIFY_RESIZE" ]]; then
+        echo "FAILED: Instance is not resized"
+        openstack --debug server show ${name}
+        return 1
+    fi
+
+    openstack server resize confirm ${name}
+
+    # Confirming the resize operation is not instantaneous. Wait for change to
+    # be reflected in server status.
+    attempt=1
+    while [[ $(openstack server show ${name} -f value -c status) != "ACTIVE" ]]; do
+        echo "Instance is not active yet"
+        attempt=$((attempt+1))
+        if [[ $attempt -eq 5 ]]; then
+            echo "FAILED: Instance failed to become active after resize confirm"
+            openstack --debug server show ${name}
+            return 1
+        fi
+        sleep 2
+    done
 }
 
 function delete_instance {
@@ -344,6 +379,10 @@ function test_instance_boot {
         echo "SUCCESS: Floating ip deallocation"
     fi
 
+    echo "TESTING: Server resize"
+    resize_instance kolla_boot_test
+    echo "SUCCESS: Server resize"
+
     echo "TESTING: Server deletion"
     delete_instance kolla_boot_test
     echo "SUCCESS: Server deletion"
@@ -369,12 +408,22 @@ function test_instance_boot {
     fi
 }
 
+function test_keystone_admin_endpoint {
+    echo "TESTING: Keystone admin endpoint removal"
+    if [[ $(openstack endpoint list --service keystone --interface admin -f value | wc -l) -ne 0 ]]; then
+        echo "ERROR: Found Keystone admin endpoint"
+        exit 1
+    fi
+    echo "SUCCESS: Keystone admin endpoint removal"
+}
+
 function test_openstack_logged {
     . /etc/kolla/admin-openrc.sh
     . ~/openstackclient-venv/bin/activate
     test_smoke
     test_neutron_modules
     test_instance_boot
+    test_keystone_admin_endpoint
 
     # Check for x86_64 architecture to run q35 tests
     if [[ $(uname -m) == "x86_64" ]]; then

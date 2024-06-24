@@ -43,6 +43,7 @@ backup_file_size = 327680000
 {% elif enable_swift | bool and cinder_backup_driver == "swift" %}
 backup_driver = cinder.backup.drivers.swift.SwiftBackupDriver
 backup_swift_url = {{ swift_internal_base_endpoint }}/v1/AUTH_
+backup_swift_ca_cert_file = {{ openstack_cacert }}
 backup_swift_auth = per_user
 backup_swift_auth_version = 1
 backup_swift_user =
@@ -116,7 +117,6 @@ service_type = volume
 # see: https://security.openstack.org/ossa/OSSA-2023-003.html
 # and: https://docs.openstack.org/cinder/zed/configuration/block-storage/service-token.html#troubleshooting
 service_token_roles_required = true
-service_token_roles = admin
 www_authenticate_uri = {{ keystone_internal_url }}
 auth_url = {{ keystone_internal_url }}
 auth_type = password
