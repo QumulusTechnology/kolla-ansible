@@ -23,7 +23,7 @@ hacluster_services:
     volumes: "{{ hacluster_pacemaker_default_volumes + hacluster_pacemaker_extra_volumes }}"
     ipc_mode: "host"
     dimensions: "{{ hacluster_pacemaker_dimensions }}"
-    privileged: true
+    privileged: True
   hacluster-pacemaker-remote:
     container_name: "hacluster_pacemaker_remote"
     group: "hacluster-remote"
