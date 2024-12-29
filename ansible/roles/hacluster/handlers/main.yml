@@ -26,6 +26,7 @@
     common_options: "{{ docker_common_options }}"
     name: "{{ service.container_name }}"
     image: "{{ service.image }}"
+    privileged: true
     environment: "{{ service.environment }}"
     volumes: "{{ service.volumes | reject('equalto', '') | list }}"
     ipc_mode: "{{ service.ipc_mode }}"

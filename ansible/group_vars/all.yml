@@ -98,6 +98,7 @@ docker_registry_email:
 docker_registry: "quay.io"
 docker_namespace: "openstack.kolla"
 docker_registry_username:
+docker_image_name_prefix: ""
 # Please read the docs carefully before applying docker_registry_insecure.
 docker_registry_insecure: "no"
 docker_runtime_directory: ""
@@ -357,6 +358,9 @@ collectd_udp_port: "25826"
 
 cyborg_api_port: "6666"
 
+database_enable_tls_backend: "{{ 'yes' if ((kolla_enable_tls_backend | bool ) and ( enable_proxysql | bool)) else 'no' }}"
+database_enable_tls_internal: "{{ 'yes' if ((kolla_enable_tls_internal | bool ) and ( enable_proxysql | bool)) else 'no' }}"
+
 designate_internal_fqdn: "{{ kolla_internal_fqdn }}"
 designate_external_fqdn: "{{ kolla_external_fqdn }}"
 designate_api_port: "9001"
@@ -402,6 +406,29 @@ haproxy_stats_port: "1984"
 haproxy_monitor_port: "61313"
 haproxy_ssh_port: "2985"
 
+# configure SSL/TLS settings for haproxy config, one of [modern, intermediate, legacy]:
+kolla_haproxy_ssl_settings: "modern"
+
+haproxy_ssl_settings: "{{ ssl_legacy_settings if kolla_haproxy_ssl_settings == 'legacy' else ssl_intermediate_settings if kolla_haproxy_ssl_settings == 'intermediate' else ssl_modern_settings | default(ssl_modern_settings) }}"
+
+ssl_legacy_settings: |
+    ssl-default-bind-ciphers DEFAULT:!MEDIUM:!3DES
+    ssl-default-bind-options no-sslv3 no-tlsv10 no-tlsv11
+
+ssl_intermediate_settings: |
+    ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-CHACHA20-POLY1305
+    ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
+    ssl-default-bind-options prefer-client-ciphers no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
+    ssl-default-server-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-CHACHA20-POLY1305
+    ssl-default-server-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
+    ssl-default-server-options no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
+
+ssl_modern_settings: |
+    ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
+    ssl-default-bind-options prefer-client-ciphers no-sslv3 no-tlsv10 no-tlsv11 no-tlsv12 no-tls-tickets
+    ssl-default-server-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
+    ssl-default-server-options no-sslv3 no-tlsv10 no-tlsv11 no-tlsv12 no-tls-tickets
+
 heat_internal_fqdn: "{{ kolla_internal_fqdn }}"
 heat_external_fqdn: "{{ kolla_external_fqdn }}"
 heat_api_port: "8004"
@@ -446,6 +473,10 @@ keystone_ssh_port: "8023"
 kuryr_port: "23750"
 
 letsencrypt_webserver_port: "8081"
+
+letsencrypt_managed_certs: "{{ '' if not enable_letsencrypt | bool else ('internal' if letsencrypt_internal_cert_server != '' and kolla_same_external_internal_vip | bool else ('internal,external' if letsencrypt_internal_cert_server != '' and letsencrypt_external_cert_server != '' else ('internal' if letsencrypt_internal_cert_server != '' else ('external' if letsencrypt_external_cert_server != '' and not kolla_same_external_internal_vip | bool else '')))) }}"
+letsencrypt_external_cert_server: ""
+letsencrypt_internal_cert_server: ""
 
 magnum_internal_fqdn: "{{ kolla_internal_fqdn }}"
 magnum_external_fqdn: "{{ kolla_external_fqdn }}"

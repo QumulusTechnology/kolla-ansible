@@ -9,7 +9,7 @@
     volumes: "{{ service.volumes | default(omit) }}"
     dimensions: "{{ service.dimensions | default(omit) }}"
     volumes_from: "{{ service.volumes_from | default(omit) }}"
-    privileged: "{{ service.privileged | default(omit) }}"
+    privileged: true
     cap_add: "{{ service.cap_add | default(omit) }}"
     environment: "{{ service.environment | default(omit) }}"
     ipc_mode: "{{ service.ipc_mode | default(omit) }}"
@@ -22,4 +22,4 @@
     service: "{{ item.value }}"
   with_dict: "{{ hacluster_services | select_services_enabled_and_mapped_to_host }}"
   notify:
-    - "Restart {{ service_name }} container"
+  - "Restart {{ service_name }} container"

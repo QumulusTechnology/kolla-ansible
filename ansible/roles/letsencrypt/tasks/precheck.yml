@@ -2,6 +2,7 @@
 - name: Get container facts
   become: true
   kolla_container_facts:
+    action: get_containers
     container_engine: "{{ kolla_container_engine }}"
     name:
       - letsencrypt_webserver
@@ -18,8 +19,7 @@
     state: stopped
   when:
     - container_facts['letsencrypt_webserver'] is not defined
-    - inventory_hostname in groups[service.group]
-    - service.enabled | bool
+    - service | service_enabled_and_mapped_to_host
 
 - name: Validating letsencrypt email variable
   run_once: true
