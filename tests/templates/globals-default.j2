@@ -108,6 +108,8 @@ enable_aodh: "yes"
 
 {% if scenario == "ironic" %}
 enable_ironic: "yes"
+enable_prometheus: "yes"
+enable_prometheus_openstack_exporter: "no"
 ironic_dnsmasq_dhcp_ranges:
   - range: "10.42.0.2,10.42.0.254,255.255.255.0"
 {% endif %}
@@ -141,7 +143,7 @@ etcd_remove_deleted_members: "yes"
 
 enable_ceph_rgw: "yes"
 ceph_rgw_hosts:
-{% for host in hostvars %}
+{% for host in hostvars | reject('equalto', 'localhost') %}
   - host: {{ host }}
     ip: {{ hostvars[host]['ansible_host'] }}
     port: 6780
