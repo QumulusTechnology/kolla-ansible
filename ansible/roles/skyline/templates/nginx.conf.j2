@@ -30,6 +30,7 @@ http {
     ##
     # SSL Settings
     ##
+    proxy_ssl_protocols TLSv1.2 TLSv1.3; # Qumulus added as skyline api was not accessible
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_prefer_server_ciphers on;
 

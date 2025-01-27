@@ -9,7 +9,8 @@
     volumes: "{{ service.volumes | default(omit) }}"
     dimensions: "{{ service.dimensions | default(omit) }}"
     volumes_from: "{{ service.volumes_from | default(omit) }}"
-    privileged: "{{ service.privileged | default(omit) }}"
+    # privileged: "{{ service.privileged | default(omit) }}" - Qumulus Removed as we always need priveliged
+    privileged: true
     cap_add: "{{ service.cap_add | default(omit) }}"
     environment: "{{ service.environment | default(omit) }}"
     ipc_mode: "{{ service.ipc_mode | default(omit) }}"
