@@ -37,13 +37,6 @@ prometheus_services:
     image: "{{ prometheus_mysqld_exporter_image_full }}"
     volumes: "{{ prometheus_mysqld_exporter_default_volumes + prometheus_mysqld_exporter_extra_volumes }}"
     dimensions: "{{ prometheus_mysqld_exporter_dimensions }}"
-  prometheus-haproxy-exporter:
-    container_name: prometheus_haproxy_exporter
-    group: prometheus-haproxy-exporter
-    enabled: "{{ enable_prometheus_haproxy_exporter | bool }}"
-    image: "{{ prometheus_haproxy_exporter_image_full }}"
-    volumes: "{{ prometheus_haproxy_exporter_default_volumes + prometheus_haproxy_exporter_extra_volumes }}"
-    dimensions: "{{ prometheus_haproxy_exporter_dimensions }}"
   prometheus-memcached-exporter:
     container_name: prometheus_memcached_exporter
     group: prometheus-memcached-exporter
