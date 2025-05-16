@@ -105,6 +105,7 @@ prometheus_services:
         backend_http_extra:
           - "option httpchk"
           - "timeout server {{ prometheus_openstack_exporter_timeout }}"
+          - "timeout check {{ prometheus_openstack_exporter_timeout }}"
       prometheus_openstack_exporter_external:
         enabled: "{{ enable_prometheus_openstack_exporter_external | bool }}"
         mode: "http"
@@ -113,6 +114,7 @@ prometheus_services:
         backend_http_extra:
           - "option httpchk"
           - "timeout server {{ prometheus_openstack_exporter_timeout }}"
+          - "timeout check {{ prometheus_openstack_exporter_timeout }}"
   prometheus-elasticsearch-exporter:
     container_name: prometheus_elasticsearch_exporter
     group: prometheus-elasticsearch-exporter
