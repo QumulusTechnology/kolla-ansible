@@ -2,6 +2,11 @@
 enabled = true
 {% if neutron_plugin_agent == 'vmware_nsxv' %}
 driver = vmware_nsxv_edge
+{% elif neutron_plugin_agent == 'ovn' %}
+agent_version = v2
+
+[service_providers]
+service_provider = FIREWALL_V2:fwaas_db:neutron_fwaas.services.firewall.service_drivers.ovn.firewall_l3_driver.OVNFwaasDriver:default
 {% else %}
 agent_version = v2
 driver = iptables_v2
