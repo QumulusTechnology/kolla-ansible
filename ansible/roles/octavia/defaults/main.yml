@@ -327,6 +327,9 @@ octavia_amp_security_groups:
         src_port: 22
         dst_port: 22
       - protocol: tcp
+        src_port: 8405
+        dst_port: 8405
+      - protocol: tcp
         src_port: "{{ octavia_amp_listen_port }}"
         dst_port: "{{ octavia_amp_listen_port }}"
   health-mgr-sec-grp:
