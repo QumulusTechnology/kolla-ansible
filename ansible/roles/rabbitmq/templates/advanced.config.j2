@@ -3,5 +3,27 @@
     {inet_dist_use_interface, {% raw %}{{% endraw %}{{ api_interface_address | put_address_in_context('rabbitmq') }}}},
     {inet_dist_listen_min, {{ role_rabbitmq_cluster_port }}},
     {inet_dist_listen_max, {{ role_rabbitmq_cluster_port }}}
+  ]},
+  {rabbit, [
+    %% CRITICAL: Increase handshake timeouts to prevent connection drops
+    {handshake_timeout, 60000},        %% 60 seconds (was 10 seconds)
+    {ssl_handshake_timeout, 30000},    %% 30 seconds (was 5 seconds)
+
+    %% TCP connection stability settings
+    {tcp_listen_options, [
+      {backlog, 128},
+      {nodelay, true},
+      {keepalive, true},
+      {reuseaddr, true},
+      {linger, {true, 0}}
+    ]},
+
+    %% Connection and channel limits
+    {connection_max, 10000},           %% Maximum concurrent connections
+    {channel_max, 2000},               %% Maximum channels per connection
+
+    %% Message and queue timeouts for long operations
+    {queue_master_locator, <<"min-masters">>},
+    {collect_statistics_interval, 10000}  %% Reduce stats collection overhead
   ]}
 ].
